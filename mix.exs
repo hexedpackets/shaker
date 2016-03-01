@@ -19,6 +19,7 @@ defmodule Shaker.Mixfile do
       {:trot, github: "hexedpackets/trot"},
       {:httpotion, "~> 2.2.0"},
       {:poison, "~> 2.0", override: true},
+      {:shouldi, "~> 0.3.0", only: :test},
     ]
   end
 end

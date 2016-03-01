@@ -12,5 +12,6 @@
   "plug_heartbeat": {:hex, :plug_heartbeat, "0.2.0"},
   "poison": {:hex, :poison, "2.1.0"},
   "ranch": {:hex, :ranch, "1.2.1"},
+  "shouldi": {:hex, :shouldi, "0.3.0"},
   "ssl_verify_hostname": {:hex, :ssl_verify_hostname, "1.0.5"},
   "trot": {:git, "https://github.com/hexedpackets/trot.git", "38a2c53cec98b40d71b3f6d1006d24ed07f9f76f", []}}
