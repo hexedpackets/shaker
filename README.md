@@ -1,6 +1,8 @@
 # Shaker
 
-**TODO: Add description**
+Gateway that sits in front of the SaltStack netapi's to make them more RESTful.
+
+Responses are parsed and turned into meaninful status codes.
 
 ## Installation
 
