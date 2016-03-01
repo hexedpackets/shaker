@@ -1,4 +1,22 @@
 defmodule Shaker do
+  @moduledoc """
+  Module for making calls to the Salt API and parsing the response.
+  The response takes one of the following formats (as JSON):
+
+  ## Simple string result
+  {"return": "some string"}
+
+  ## Boolean result
+  In this form, each item of the array corresponds to one function issued in the call.
+  Each targetted minion has its own key in the dictionary for each function in the array.
+  {"return": [{"minion": bool}]}
+
+  ## Dictionary result
+  Same as above, but with a dictionary under each minion. Usually used with states.
+  {"return": [{"minion": {"name": {"result": bool, ...}}}]}
+
+  """
+
   require Logger
 
   defp default_settings do
@@ -52,11 +70,11 @@ defmodule Shaker do
 
   defp parse_body({:ok, %{return: ret}}) when is_binary(ret), do: {:ok, ret}
   defp parse_body({:ok, %{return: []}}), do: {:gateway_timeout, "Empty return"}
-  defp parse_body({:ok, %{return: ret}}) when is_list(ret), do: ret |> check_return([])
+  defp parse_body({:ok, %{return: cmd_returns}}) when is_list(cmd_returns), do: check_commands(cmd_returns, [])
   defp parse_body({:ok, body}), do: {:unprocessable_entity, Poison.encode!(body)}
   defp parse_body({:error, error}), do: {:unsupported_media_type, error}
 
-  defp check_return([], acc) do
+  defp check_commands([], acc) do
     Logger.debug "Accumulated checks: #{inspect acc}"
     {_good_returns, bad_returns} = Keyword.pop(acc, :ok)
     case bad_returns do
@@ -64,18 +82,20 @@ defmodule Shaker do
       _ -> {:internal_server_error, acc}
     end
   end
-  defp check_return([ret | rest], acc) do
-    check = check_command(ret)
-    {_, acc} = Keyword.get_and_update(acc, check, fn(val) -> create_or_append(val, ret) end)
-    Logger.debug "Checking '#{inspect ret}': #{check}"
-    check_return(rest, acc)
+  defp check_commands([command_return | commands], acc) do
+    check = command_return |> Dict.values |> check_return
+    {_, acc} = Keyword.get_and_update(acc, check, fn(val) -> create_or_append(val, command_return) end)
+    Logger.debug "Checking '#{inspect command_return}': #{check}"
+    check_commands(commands, acc)
   end
 
-  defp check_command(ret) do
-    case Enum.filter(ret, fn({node, value}) -> not value end) do
-      [] -> :ok
-      failed -> :error
-    end
+  defp check_return([]), do: :ok
+  defp check_return([false | _]), do: :error
+  defp check_return([true | rest]), do: check_return(rest)
+  defp check_return([%{"result" => false} | rest]), do: :error
+  defp check_return([%{"result" => true} | rest]), do: check_return(rest)
+  defp check_return([ret = %{} | rest]) do
+    ret |> Dict.values |> Enum.concat(rest) |> check_return
   end
 
   @doc """

@@ -50,4 +50,18 @@ defmodule ShakerTest do
     {ret_code, body} = %{return: [%{"node" => false}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
     assert code(ret_code) >= 500
   end
+
+  should "validate state returns" do
+    {ret_code, body} = %{return: [%{"node" => %{"some crazy state" => %{"result" => true}}}]}
+    |> Poison.encode!
+    |> response
+    |> Shaker.parse_salt_resp
+    assert code(ret_code) == 200
+
+    {ret_code, body} = %{return: [%{"node" => %{"some crazy state" => %{"result" => true}, "a broken state" => %{"result" => false}}}]}
+    |> Poison.encode!
+    |> response
+    |> Shaker.parse_salt_resp
+    assert code(ret_code) >= 400
+  end
 end
