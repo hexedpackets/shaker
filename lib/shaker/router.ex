@@ -1,15 +1,11 @@
 defmodule Shaker.Router do
   use Trot.Router
-  require Logger
 
-  get "/" do
-    Shaker.salt_call("/")
-  end
+  get "/", do: Shaker.salt_call("/")
 
   post "/:tgt/:fun/run" do
-    resp = Shaker.salt_call(:post, "/run", [tgt: tgt, fun: fun])
-    Logger.debug "Responding with: #{inspect resp}"
-    resp
+    {user, pass} = conn.request_headers |> Enum.into(%{}) |> Shaker.auth_info(conn.body)
+    Shaker.salt_call(:post, "/run", [tgt: tgt, fun: fun, username: user, password: pass])
   end
 
   import_routes Trot.NotFound

@@ -12,7 +12,14 @@ defmodule Shaker do
   end
 
 
+  @doc """
+  Make a get request to the Salt API server at the given path.
+  """
   def salt_call(path), do: salt_call(:get, path)
+
+  @doc """
+  Makes a HTTP request to the Salt API server and returns the parsed response.
+  """
   def salt_call(method, path, body \\ "", headers \\ [])
   def salt_call(method, path, body, headers) when is_binary(body) do
     settings = Application.get_env(:shaker, :saltapi)
@@ -26,10 +33,8 @@ defmodule Shaker do
     resp |> parse_salt_resp
   end
   def salt_call(method, path, body, headers) do
-    body = body
-    |> Enum.into([])
-    |> Keyword.merge(default_settings)
-    |> URI.encode_query
+    body = body |> Enum.into([])
+    body = Keyword.merge(default_settings, body) |> URI.encode_query
 
     headers = headers
     |> Enum.into([])
@@ -37,6 +42,9 @@ defmodule Shaker do
     salt_call(method, path, body, headers)
   end
 
+  @doc """
+  Parses an HTTP response from the Salt API into a RESTful entity.
+  """
   def parse_salt_resp(%HTTPotion.Response{status_code: 200, body: body}) do
     body |> Poison.decode(keys: :atoms) |> parse_body
   end
@@ -51,4 +59,18 @@ defmodule Shaker do
   defp check_return(ret) do
     {:ok, ret}
   end
+
+  @doc """
+  Returns a tuple of {username, password} for authenticating with the Salt API.
+  The values used are based on the type of auth specified in the request headers to Shaker.
+  """
+  def auth_info(%{"x-auth-type" => "form"}, body) do
+    body |> URI.decode_query |> _auth_info
+  end
+  def auth_info(headers, body) do
+    headers |> Dict.put("x-auth-type", "form") |> auth_info(body)
+  end
+
+  defp _auth_info(%{"username" => user, "password" => pass}), do: {user, pass}
+  defp _auth_info(_), do: {:error, "No valid auth found"}
 end

@@ -24,4 +24,22 @@ defmodule ShakerTest do
     assert code(ret_code) == 200
     assert body == "explosions!"
   end
+
+  having "a username and password" do
+    setup_all context do
+      context = context
+      |> Dict.put(:user, "legitadmin")
+      |> Dict.put(:password, "letmein")
+      {:ok, context}
+    end
+
+    should "parse url-encoded body auth", context do
+      auth = Shaker.auth_info(%{"x-auth-type" => "form"}, "username=#{context[:user]}&password=#{context[:password]}")
+      assert auth == {context[:user], context[:password]}
+    end
+
+    should "use url-encoded body auth when nothing else is specified", context do
+      assert Shaker.auth_info(%{}, "username=#{context[:user]}&password=#{context[:password]}") == {context[:user], context[:password]}
+    end
+  end
 end
