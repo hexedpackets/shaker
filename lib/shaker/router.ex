@@ -1,4 +1,7 @@
 defmodule Shaker.Router do
+  use Plug.Builder
+  plug Plug.RequestId
+  plug Plug.Parsers, parsers: [:urlencoded]
   use Trot.Router
 
   get "/", do: Shaker.salt_call("/")

@@ -11,3 +11,4 @@ config :shaker, :saltapi,
 
 
 config :logger, level: :debug
+config :logger, :console, metadata: [:request_id]
