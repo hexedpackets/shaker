@@ -52,12 +52,30 @@ defmodule Shaker do
 
   defp parse_body({:ok, %{return: ret}}) when is_binary(ret), do: {:ok, ret}
   defp parse_body({:ok, %{return: []}}), do: {:gateway_timeout, "Empty return"}
-  defp parse_body({:ok, %{return: ret}}) when is_list(ret), do: ret |> check_return
+  defp parse_body({:ok, %{return: ret}}) when is_list(ret), do: ret |> check_return([])
   defp parse_body({:ok, body}), do: {:unprocessable_entity, Poison.encode!(body)}
   defp parse_body({:error, error}), do: {:unsupported_media_type, error}
 
-  defp check_return(ret) do
-    {:ok, ret}
+  defp check_return([], acc) do
+    Logger.debug "Accumulated checks: #{inspect acc}"
+    {_good_returns, bad_returns} = Keyword.pop(acc, :ok)
+    case bad_returns do
+      [] -> {:ok, acc}
+      _ -> {:internal_server_error, acc}
+    end
+  end
+  defp check_return([ret | rest], acc) do
+    check = check_command(ret)
+    {_, acc} = Keyword.get_and_update(acc, check, fn(val) -> create_or_append(val, ret) end)
+    Logger.debug "Checking '#{inspect ret}': #{check}"
+    check_return(rest, acc)
+  end
+
+  defp check_command(ret) do
+    case Enum.filter(ret, fn({node, value}) -> not value end) do
+      [] -> :ok
+      failed -> :error
+    end
   end
 
   @doc """
@@ -73,4 +91,7 @@ defmodule Shaker do
 
   defp _auth_info(%{"username" => user, "password" => pass}), do: {user, pass}
   defp _auth_info(_), do: {:error, "No valid auth found"}
+
+  defp create_or_append(nil, val), do: {nil, [val]}
+  defp create_or_append(l, val) when is_list(l), do: {l, [val | l]}
 end

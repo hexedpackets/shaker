@@ -42,4 +42,12 @@ defmodule ShakerTest do
       assert Shaker.auth_info(%{}, "username=#{context[:user]}&password=#{context[:password]}") == {context[:user], context[:password]}
     end
   end
+
+  should "validate boolean returns" do
+    {ret_code, body} = %{return: [%{"node" => true}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
+    assert code(ret_code) == 200
+
+    {ret_code, body} = %{return: [%{"node" => false}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
+    assert code(ret_code) >= 500
+  end
 end
