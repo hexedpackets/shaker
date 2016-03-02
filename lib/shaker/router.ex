@@ -1,10 +1,11 @@
 defmodule Shaker.Router do
   use Plug.Builder
   plug Plug.RequestId
-  plug Plug.Parsers, parsers: [:urlencoded, :json],
-                     json_decoder: Poison
+  plug Plug.Parsers, parsers: [:urlencoded, :json], json_decoder: Poison
+  use Trot.Router
 
   require Logger
+
   get "/", do: Shaker.salt_call("/")
 
   post "/:tgt/:fun" do
