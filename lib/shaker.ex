@@ -21,12 +21,12 @@ defmodule Shaker do
 
   defp default_settings do
     settings = Application.get_env(:shaker, :saltapi)
-    [
+    %{
       client: "local",
       eauth: "pam",
       username: settings[:username],
       password: settings[:password],
-    ]
+    }
   end
 
 
@@ -51,12 +51,12 @@ defmodule Shaker do
     resp |> parse_salt_resp
   end
   def salt_call(method, path, body, headers) do
-    body = body |> Enum.into([])
-    body = Keyword.merge(default_settings, body) |> URI.encode_query
+    body = body |> Enum.into(%{})
+    body = Dict.merge(default_settings, body) |> Poison.encode!
 
     headers = headers
     |> Enum.into([])
-    |> Keyword.put(:"Content-Type", "application/x-www-form-urlencoded")
+    |> Keyword.put(:"Content-Type", "application/json")
     salt_call(method, path, body, headers)
   end
 
@@ -70,19 +70,21 @@ defmodule Shaker do
 
   defp parse_body({:ok, %{return: ret}}) when is_binary(ret), do: {:ok, ret}
   defp parse_body({:ok, %{return: []}}), do: {:gateway_timeout, "Empty return"}
-  defp parse_body({:ok, %{return: cmd_returns}}) when is_list(cmd_returns), do: check_commands(cmd_returns, [])
+  defp parse_body({:ok, %{return: cmd_returns}}) when is_list(cmd_returns), do: {check_commands(cmd_returns), %{return: cmd_returns}}
   defp parse_body({:ok, body}), do: {:unprocessable_entity, Poison.encode!(body)}
   defp parse_body({:error, error}), do: {:unsupported_media_type, error}
 
+  defp check_commands(commands, acc \\ [])
   defp check_commands([], acc) do
     Logger.debug "Accumulated checks: #{inspect acc}"
     {_good_returns, bad_returns} = Keyword.pop(acc, :ok)
     case bad_returns do
-      [] -> {:ok, acc}
-      _ -> {:internal_server_error, acc}
+      [] -> :ok
+      _ -> :internal_server_error
     end
   end
   defp check_commands([command_return | commands], acc) do
+    Logger.debug "Checking comman_return: #{inspect command_return}"
     check = command_return |> Dict.values |> check_return
     {_, acc} = Keyword.get_and_update(acc, check, fn(val) -> create_or_append(val, command_return) end)
     Logger.debug "Checking '#{inspect command_return}': #{check}"
@@ -90,27 +92,35 @@ defmodule Shaker do
   end
 
   defp check_return([]), do: :ok
-  defp check_return([false | _]), do: :error
+  defp check_return([result | _rest]) when is_binary(result), do: :error
+  defp check_return([false | _rest]), do: :error
   defp check_return([true | rest]), do: check_return(rest)
-  defp check_return([%{"result" => false} | rest]), do: :error
+  defp check_return([%{"result" => false} | _rest]), do: :error
   defp check_return([%{"result" => true} | rest]), do: check_return(rest)
+  defp check_return([%{result: false} | _rest]), do: :error
+  defp check_return([%{result: true} | rest]), do: check_return(rest)
   defp check_return([ret = %{} | rest]) do
     ret |> Dict.values |> Enum.concat(rest) |> check_return
+  end
+  defp check_return([result | rest]) when is_list(result) do
+    result |> Enum.concat(rest) |> check_return
   end
 
   @doc """
   Returns a tuple of {username, password} for authenticating with the Salt API.
   The values used are based on the type of auth specified in the request headers to Shaker.
   """
-  def auth_info(%{"x-auth-type" => "form"}, body) do
-    body |> URI.decode_query |> _auth_info
-  end
+  def auth_info(%{"x-auth-type" => "form"}, body), do: form_auth(body)
+  def auth_info(%{"x-auth-type" => auth}, _body), do: {:error, "#{auth} is not a valid auth type"}
   def auth_info(headers, body) do
     headers |> Dict.put("x-auth-type", "form") |> auth_info(body)
   end
 
-  defp _auth_info(%{"username" => user, "password" => pass}), do: {user, pass}
-  defp _auth_info(_), do: {:error, "No valid auth found"}
+  defp form_auth(%{"username" => user, "password" => pass}), do: {user, pass}
+  defp form_auth(body) do
+    Logger.debug "body: #{inspect body}"
+    {:error, "No valid auth found"}
+  end
 
   defp create_or_append(nil, val), do: {nil, [val]}
   defp create_or_append(l, val) when is_list(l), do: {l, [val | l]}

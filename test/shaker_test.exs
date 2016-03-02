@@ -33,35 +33,48 @@ defmodule ShakerTest do
       {:ok, context}
     end
 
-    should "parse url-encoded body auth", context do
-      auth = Shaker.auth_info(%{"x-auth-type" => "form"}, "username=#{context[:user]}&password=#{context[:password]}")
+    should "pull username and password from the body params for form auth", context do
+      auth = Shaker.auth_info(%{"x-auth-type" => "form"}, %{"username" => context[:user], "password" => context[:password]})
       assert auth == {context[:user], context[:password]}
     end
 
-    should "use url-encoded body auth when nothing else is specified", context do
-      assert Shaker.auth_info(%{}, "username=#{context[:user]}&password=#{context[:password]}") == {context[:user], context[:password]}
+    should "use form auth by default", context do
+      assert Shaker.auth_info(%{}, %{"username" => context[:user], "password" => context[:password]}) == {context[:user], context[:password]}
     end
   end
 
   should "validate boolean returns" do
-    {ret_code, body} = %{return: [%{"node" => true}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
+    {ret_code, _body} = %{return: [%{"node" => true}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
     assert code(ret_code) == 200
 
-    {ret_code, body} = %{return: [%{"node" => false}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
+    {ret_code, _body} = %{return: [%{"node" => false}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
     assert code(ret_code) >= 500
   end
 
   should "validate state returns" do
-    {ret_code, body} = %{return: [%{"node" => %{"some crazy state" => %{"result" => true}}}]}
+    {ret_code, _body} = %{return: [%{"node" => %{"some crazy state" => %{"result" => true}}}]}
     |> Poison.encode!
     |> response
     |> Shaker.parse_salt_resp
     assert code(ret_code) == 200
 
-    {ret_code, body} = %{return: [%{"node" => %{"some crazy state" => %{"result" => true}, "a broken state" => %{"result" => false}}}]}
+    {ret_code, _body} = %{return: [%{"node" => %{"some crazy state" => %{"result" => true}, "a broken state" => %{"result" => false}}}]}
     |> Poison.encode!
     |> response
     |> Shaker.parse_salt_resp
+    assert code(ret_code) >= 400
+  end
+
+  should "mark string results as errors" do
+    {ret_code, _body} = %{return: [%{"node" => "look at my error"}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
+    assert code(ret_code) >= 400
+  end
+
+  should "validate list returns" do
+    {ret_code, _body} = %{return: [%{"node" => [true]}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
+    assert code(ret_code) == 200
+
+    {ret_code, _body} = %{return: [%{"node" => [true, "look at my error"]}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
     assert code(ret_code) >= 400
   end
 end
