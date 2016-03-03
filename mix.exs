@@ -11,7 +11,7 @@ defmodule Shaker.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :trot, :httpotion, :poison]]
+    [applications: [:logger, :trot, :httpotion, :poison, :conform]]
   end
 
   defp deps do
@@ -22,7 +22,7 @@ defmodule Shaker.Mixfile do
       {:shouldi, "~> 0.3.0", only: :test},
       {:exrm, "~> 1.0", override: true},
       {:conform, "~> 2.0", override: true},
-      {:conform_exrm, "~> 0.1"},
+      {:conform_exrm, "~> 1.0"},
     ]
   end
 end
