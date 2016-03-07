@@ -14,6 +14,7 @@
   "httpotion": {:hex, :httpotion, "2.2.2"},
   "ibrowse": {:hex, :ibrowse, "4.2.2"},
   "idna": {:hex, :idna, "1.1.0"},
+  "logger_file_backend": {:hex, :logger_file_backend, "0.0.6"},
   "mimerl": {:hex, :mimerl, "1.0.2"},
   "neotoma": {:hex, :neotoma, "1.7.3"},
   "plug": {:hex, :plug, "1.1.2"},

@@ -90,14 +90,6 @@ See the moduledoc for `Conform.Schema.Validator` for more details and examples.
       hidden: false,
       to: "shaker.saltapi.password"
     ],
-    "logger.level": [
-      commented: false,
-      datatype: :atom,
-      default: :debug,
-      doc: "Provide documentation for logger.level here.",
-      hidden: false,
-      to: "logger.level"
-    ],
     "logger.console.metadata": [
       commented: false,
       datatype: [
@@ -109,6 +101,42 @@ See the moduledoc for `Conform.Schema.Validator` for more details and examples.
       doc: "Provide documentation for logger.console.metadata here.",
       hidden: false,
       to: "logger.console.metadata"
+    ],
+    "logger.level": [
+      commented: false,
+      datatype: :atom,
+      default: :debug,
+      doc: "Provide documentation for logger.level here.",
+      hidden: false,
+      to: "logger.level"
+    ],
+    "logger.debug_log.path": [
+      commented: false,
+      datatype: :binary,
+      default: "/var/log/shaker/debug.log",
+      doc: "Provide documentation for logger.debug_log.path here.",
+      hidden: false,
+      to: "logger.debug_log.path"
+    ],
+    "logger.debug_log.level": [
+      commented: false,
+      datatype: :atom,
+      default: :debug,
+      doc: "Provide documentation for logger.debug_log.level here.",
+      hidden: false,
+      to: "logger.debug_log.level"
+    ],
+    "logger.debug_log.metadata": [
+      commented: false,
+      datatype: [
+        list: :atom
+      ],
+      default: [
+        :request_id
+      ],
+      doc: "Provide documentation for logger.debug_log.metadata here.",
+      hidden: false,
+      to: "logger.debug_log.metadata"
     ]
   ],
   transforms: [],

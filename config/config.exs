@@ -9,6 +9,11 @@ config :shaker, :saltapi,
   username: System.get_env("SALTAPI_USER") || nil,
   password: System.get_env("SALTAPI_PASS") || nil
 
-
-config :logger, level: :debug
 config :logger, :console, metadata: [:request_id]
+config :logger,
+  level: :debug,
+  backends: [:console, {LoggerFileBackend, :debug_log}]
+config :logger, :debug_log,
+  path: "/var/log/shaker/debug.log",
+  level: :debug,
+  metadata: [:request_id]

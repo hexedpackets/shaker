@@ -3,7 +3,7 @@ defmodule Shaker.Mixfile do
 
   def project do
     [app: :shaker,
-     version: "0.0.2",
+     version: "0.0.3",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -11,7 +11,7 @@ defmodule Shaker.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :trot, :httpotion, :poison, :conform]]
+    [applications: [:logger_file_backend, :logger, :trot, :httpotion, :poison, :conform]]
   end
 
   defp deps do
@@ -23,6 +23,7 @@ defmodule Shaker.Mixfile do
       {:exrm, "~> 1.0", override: true},
       {:conform, "~> 2.0", override: true},
       {:conform_exrm, "~> 1.0"},
+      {:logger_file_backend, "~> 0.0.6"},
     ]
   end
 end
