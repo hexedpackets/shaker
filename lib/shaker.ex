@@ -98,7 +98,9 @@ defmodule Shaker do
   defp check_return([%{"result" => false} | _rest]), do: :error
   defp check_return([%{"result" => true} | rest]), do: check_return(rest)
   defp check_return([%{result: false} | _rest]), do: :error
-  defp check_return([%{result: true} | rest]), do: check_return(rest)
+  defp check_return([%{result: true} | rest]), do: check_return(rest) # successful cmd.run_all
+  defp check_return([%{retcode: 0} | rest]), do: check_return(rest) # failed cmd.run_all
+  defp check_return([%{retcode: _} | rest]), do: :error
   defp check_return([ret = %{} | rest]) do
     ret |> Dict.values |> Enum.concat(rest) |> check_return
   end

@@ -77,4 +77,18 @@ defmodule ShakerTest do
     {ret_code, _body} = %{return: [%{"node" => [true, "look at my error"]}]} |> Poison.encode! |> response |> Shaker.parse_salt_resp
     assert code(ret_code) >= 400
   end
+
+   should "validate cmdmod results" do
+    {ret_code, _body} = %{return: [%{"node" => %{pid: 1234, retcode: 0, stderr: "", stdout: ""}}]}
+    |> Poison.encode!
+    |> response
+    |> Shaker.parse_salt_resp
+    assert code(ret_code) == 200
+
+    {ret_code, _body} = %{return: [%{"node" => %{pid: 1234, retcode: 1, stderr: "", stdout: ""}}]}
+    |> Poison.encode!
+    |> response
+    |> Shaker.parse_salt_resp
+    assert code(ret_code) >= 400
+  end
 end
