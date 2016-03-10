@@ -1,13 +1,19 @@
 defmodule Shaker.Mixfile do
   use Mix.Project
 
+  @version File.read!("VERSION") |> String.strip
+
   def project do
     [app: :shaker,
-     version: "0.0.5",
+     version: @version,
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     deps: deps,
+     name: "Shaker",
+     docs: [readme: "README.md", main: "README",
+            source_ref: "v#{@version}",
+            source_url: "https://github.com/hexedpackets/shaker"]]
   end
 
   def application do
