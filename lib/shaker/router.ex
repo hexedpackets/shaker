@@ -10,17 +10,21 @@ defmodule Shaker.Router do
 
   post "/:tgt/:fun" do
     {user, pass} = conn.req_headers |> Enum.into(%{}) |> Shaker.auth_info(conn.params)
-    Shaker.salt_call(:post, "/run", [tgt: tgt, fun: fun, username: user, password: pass, arg: parse_args(conn)])
+    {arg, kwarg} = parse_query(conn)
+    Shaker.salt_call(:post, "/run", [tgt: tgt, fun: fun, username: user, password: pass, arg: arg, kwarg: kwarg])
   end
 
   import_routes Trot.NotFound
 
-  defp parse_args(conn) do
+  defp parse_query(conn) do
     # Treat body/query args with no values as being args for the salt function
-    arg = conn.query_string
-    |> URI.decode
-    |> String.split("&")
-    |> Enum.filter(fn(q) -> not String.contains?(q, "=") end)
-    |> Enum.filter(&(String.length(&1) > 0))
+    query = conn.query_string
+    |> URI.decode_query
+    |> Enum.group_by(fn({_arg, value}) -> is_nil(value) end)
+
+    args = Dict.get(query, true, []) |> Enum.map(fn({k, _}) -> k end)
+    kwargs = Dict.get(query, false, %{})
+
+    {args, kwargs}
   end
 end
