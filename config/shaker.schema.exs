@@ -90,6 +90,14 @@ See the moduledoc for `Conform.Schema.Validator` for more details and examples.
       hidden: false,
       to: "shaker.saltapi.password"
     ],
+    "shaker.saltapi.timeout": [
+      commented: false,
+      datatype: :integer,
+      default: 300000,
+      doc: "Timeout for calls to salt api.",
+      hidden: false,
+      to: "shaker.saltapi.timeout"
+    ],
     "logger.console.metadata": [
       commented: false,
       datatype: [

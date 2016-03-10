@@ -42,10 +42,11 @@ defmodule Shaker do
   def salt_call(method, path, body, headers) when is_binary(body) do
     settings = Application.get_env(:shaker, :saltapi)
     url = settings[:url] |> Path.join(path)
+    timeout = Application.get_env(:shaker, :saltapi) |> Keyword.get(:timeout)
 
     Logger.debug "Sending #{inspect body} to #{url} with headers #{inspect headers}"
 
-    resp = HTTPotion.request(method, url, [body: body, headers: headers, timeout: 300_000])
+    resp = HTTPotion.request(method, url, [body: body, headers: headers, timeout: timeout])
 
     Logger.debug "SaltAPI response for #{path}: #{inspect resp}"
     resp |> parse_salt_resp
