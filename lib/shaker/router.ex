@@ -11,6 +11,8 @@ defmodule Shaker.Router do
   post "/:tgt/:fun" do
     {user, pass} = conn.req_headers |> Enum.into(%{}) |> Shaker.auth_info(conn.params)
     {arg, kwarg} = parse_query(conn)
+    kwarg = kwarg |> Dict.merge(conn.params) |> Dict.delete("username") |> Dict.delete("password")
+
     Shaker.salt_call(:post, "/run", [tgt: tgt, fun: fun, username: user, password: pass, arg: arg, kwarg: kwarg])
   end
 
