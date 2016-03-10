@@ -19,3 +19,15 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         def application do
           [applications: [:shaker]]
         end
+
+
+## Releasing
+### Build
+- Docker must be installed and running locally. The release script uses a Linux-based Docker image; system libraries get linked in in, so an OSX/Windows based release will not be deployable on Linux.
+- Bump the version number in the VERSION file. Then from the root of the project, run `scripts/build_release.sh`
+
+### Publish
+- First build the release as instructed above
+- [github-releases](https://github.com/aktau/github-release) needs to be installed
+- The environmental variables `GITHUB_TOKEN` must be set
+- Run `scripts/push_release.sh`

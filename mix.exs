@@ -28,7 +28,7 @@ defmodule Shaker.Mixfile do
       {:shouldi, "~> 0.3.0", only: :test},
       {:exrm, "~> 1.0", override: true},
       {:conform, "~> 2.0", override: true},
-      {:conform_exrm, "~> 1.0"},
+      {:conform_exrm, "~> 1.0", warn_missing: false},
       {:logger_file_backend, "~> 0.0.6"},
     ]
   end
