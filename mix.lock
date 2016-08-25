@@ -1,4 +1,5 @@
 %{"bbmustache": {:hex, :bbmustache, "1.0.4"},
+  "bunt": {:hex, :bunt, "0.1.6"},
   "calliope": {:hex, :calliope, "0.3.0"},
   "certifi": {:hex, :certifi, "0.3.0"},
   "cf": {:hex, :cf, "0.2.1"},
@@ -6,6 +7,7 @@
   "conform_exrm": {:hex, :conform_exrm, "1.0.0"},
   "cowboy": {:hex, :cowboy, "1.0.4"},
   "cowlib": {:hex, :cowlib, "1.0.2"},
+  "credo": {:hex, :credo, "0.4.9"},
   "erlware_commons": {:hex, :erlware_commons, "0.19.0"},
   "exrm": {:hex, :exrm, "1.0.2"},
   "getopt": {:hex, :getopt, "0.8.2"},

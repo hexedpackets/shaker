@@ -30,6 +30,7 @@ defmodule Shaker.Mixfile do
       {:conform, "~> 2.0", override: true},
       {:conform_exrm, "~> 1.0", warn_missing: false},
       {:logger_file_backend, "~> 0.0.6"},
+      {:credo, "~> 0.4", only: [:dev, :test]},
     ]
   end
 end
