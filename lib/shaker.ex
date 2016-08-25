@@ -42,7 +42,7 @@ defmodule Shaker do
   def salt_call(method, path, body, headers) when is_binary(body) do
     settings = Application.get_env(:shaker, :saltapi)
     url = settings[:url] |> Path.join(path)
-    timeout = Application.get_env(:shaker, :saltapi) |> Keyword.get(:timeout)
+    timeout = :shaker |> Application.get_env(:saltapi) |> Keyword.get(:timeout)
 
     Logger.debug "Sending #{inspect body} to #{url} with headers #{inspect headers}"
 
@@ -53,7 +53,7 @@ defmodule Shaker do
   end
   def salt_call(method, path, body, headers) do
     body = body |> Enum.into(%{})
-    body = Dict.merge(default_settings, body) |> Poison.encode!
+    body = default_settings |> Dict.merge(body) |> Poison.encode!
 
     headers = headers
     |> Enum.into([])

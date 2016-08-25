@@ -24,8 +24,8 @@ defmodule Shaker.Router do
     |> URI.decode_query
     |> Enum.group_by(fn({_arg, value}) -> is_nil(value) end)
 
-    args = Dict.get(query, true, []) |> Enum.map(fn({k, _}) -> k end)
-    kwargs = Dict.get(query, false, %{}) |> Enum.into(%{})
+    args = query |> Dict.get(true, []) |> Enum.map(fn({k, _}) -> k end)
+    kwargs = query |> Dict.get(false, %{}) |> Enum.into(%{})
 
     {args, kwargs}
   end
