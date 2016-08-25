@@ -78,7 +78,7 @@ defmodule ShakerTest do
     assert code(ret_code) >= 400
   end
 
-   should "validate cmdmod results" do
+  should "validate cmdmod results" do
     {ret_code, _body} = %{return: [%{"node" => %{pid: 1234, retcode: 0, stderr: "", stdout: ""}}]}
     |> Poison.encode!
     |> response
@@ -90,5 +90,22 @@ defmodule ShakerTest do
     |> response
     |> Shaker.parse_salt_resp
     assert code(ret_code) >= 400
+  end
+
+  having "a stupid long salt command" do
+    setup_all context do
+      long_id = "cmd_|-super long command_|-ls -tr /var/cache/salt/minion/extrn_files/base/awesome-build-bucket-in-region-us-east-5/website/master/integrated/experimental/tested/ | head -n 2 | xargs -n1 -I{} rm -rf /var/cache/salt/minion/extrn_files/base/awesome-build-bucket-in-region-us-east-5/website/master/integrated/experimental/tested/{}_|-run"
+      context = context
+      |> Dict.put(:long_id, long_id)
+      {:ok, context}
+    end
+
+    should "parse a long lowstate id", context do
+      {ret_code, _body} = %{return: [%{"node" => %{context[:long_id] => %{result: true}}}]}
+      |> Poison.encode!
+      |> response
+      |> Shaker.parse_salt_resp
+      assert code(ret_code) == 200
+    end
   end
 end

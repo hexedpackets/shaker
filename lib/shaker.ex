@@ -65,13 +65,13 @@ defmodule Shaker do
   Parses an HTTP response from the Salt API into a RESTful entity.
   """
   def parse_salt_resp(%HTTPotion.Response{status_code: 200, body: body}) do
-    body |> Poison.decode(keys: :atoms) |> parse_body
+    body |> Poison.decode |> parse_body
   end
   def parse_salt_resp(%HTTPotion.Response{status_code: code}), do: code
 
-  defp parse_body({:ok, %{return: ret}}) when is_binary(ret), do: {:ok, ret}
-  defp parse_body({:ok, %{return: []}}), do: {:gateway_timeout, "Empty return"}
-  defp parse_body({:ok, %{return: cmd_returns}}) when is_list(cmd_returns), do: {check_commands(cmd_returns), %{return: cmd_returns}}
+  defp parse_body({:ok, %{"return" => ret}}) when is_binary(ret), do: {:ok, ret}
+  defp parse_body({:ok, %{"return" => []}}), do: {:gateway_timeout, "Empty return"}
+  defp parse_body({:ok, %{"return" => cmd_returns}}) when is_list(cmd_returns), do: {check_commands(cmd_returns), %{"return" => cmd_returns}}
   defp parse_body({:ok, body}), do: {:unprocessable_entity, Poison.encode!(body)}
   defp parse_body({:error, error}), do: {:unsupported_media_type, error}
 
@@ -98,10 +98,10 @@ defmodule Shaker do
   defp check_return([true | rest]), do: check_return(rest)
   defp check_return([%{"result" => false} | _rest]), do: :error
   defp check_return([%{"result" => true} | rest]), do: check_return(rest)
-  defp check_return([%{result: false} | _rest]), do: :error
-  defp check_return([%{result: true} | rest]), do: check_return(rest) # successful cmd.run_all
-  defp check_return([%{retcode: 0} | rest]), do: check_return(rest) # failed cmd.run_all
-  defp check_return([%{retcode: _} | rest]), do: :error
+  #defp check_return([%{result: false} | _rest]), do: :error
+  #defp check_return([%{result: true} | rest]), do: check_return(rest) # successful cmd.run_all
+  defp check_return([%{"retcode" => 0} | rest]), do: check_return(rest) # failed cmd.run_all
+  defp check_return([%{"retcode" => _} | rest]), do: :error
   defp check_return([ret = %{} | rest]) do
     ret |> Dict.values |> Enum.concat(rest) |> check_return
   end
